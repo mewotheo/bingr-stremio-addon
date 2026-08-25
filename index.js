@@ -16,12 +16,15 @@ const builder = new addonBuilder(manifest);
 
 builder.defineStreamHandler(async (args) => {
     const { type, id } = args;
+    console.log(`[Request] Fetching streams for ID: ${id}, Type: ${type}`);
 
     try {
         const response = await axios.get("https://bingr.one/api/get-stream", {
             params: { type, imdb: id },
             timeout: 7000
         });
+
+        console.log("[API Response]:", JSON.stringify(response.data));
 
         if (response.data && Array.isArray(response.data.servers)) {
             const streams = response.data.servers.map(server => ({
@@ -33,7 +36,7 @@ builder.defineStreamHandler(async (args) => {
             return { streams };
         }
     } catch (error) {
-        console.error("Error fetching streams:", error.message);
+        console.error("[API Error]:", error.message);
     }
 
     return { streams: [] };
