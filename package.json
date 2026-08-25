@@ -1,13 +1,13 @@
 {
   "name": "bingr-stremio-addon",
   "version": "1.0.0",
-  "description": "Bingr.one official Stremio integration",
+  "description": "Bingr.one Stremio Integration",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "stremio-addon-sdk": "^1.6.0"
+    "stremio-addon-sdk": "^1.6.0",
+    "axios": "^1.6.0"
   }
 }
