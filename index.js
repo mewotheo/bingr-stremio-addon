@@ -5,7 +5,7 @@ const manifest = {
     id: "one.bingr.stremio.addon",
     version: "1.0.0",
     name: "Bingr Stream",
-    description: "Watch movies and series directly on Bingr.one",
+    description: "Stream movies and series directly inside Stremio player",
     resources: ["stream"],
     types: ["movie", "series"],
     idPrefixes: ["tt"],
@@ -13,8 +13,6 @@ const manifest = {
 };
 
 const builder = new addonBuilder(manifest);
-
-// مفتاح مجاني لتحويل IMDb ID إلى TMDB ID
 const TMDB_API_KEY = "15d2ea6d0dc1d476efbca3eba2b9bbfb";
 
 builder.defineStreamHandler(async (args) => {
@@ -32,7 +30,6 @@ builder.defineStreamHandler(async (args) => {
             episode = parts[2];
         }
 
-        // تحويل IMDb ID إلى TMDB ID
         const tmdbRes = await axios.get(`https://api.themoviedb.org/3/find/${imdbId}`, {
             params: {
                 api_key: TMDB_API_KEY,
@@ -49,16 +46,17 @@ builder.defineStreamHandler(async (args) => {
         }
 
         if (tmdbId) {
-            const bingrUrl = type === "movie" 
+            // رابط الصفحة لفتحها بضغط زر في المشغل الداخلي
+            const embedUrl = type === "movie" 
                 ? `https://bingr.one/watch/movie/${tmdbId}`
                 : `https://bingr.one/watch/tv/${tmdbId}/${season}/${episode}`;
 
             return {
                 streams: [
                     {
-                        name: "Bingr",
-                        title: `▶ Watch on Bingr.one (${type === 'series' ? `S${season}E${episode}` : 'Movie'})`,
-                        externalUrl: bingrUrl
+                        name: "Bingr 1080p",
+                        title: `Bingr Stream - Auto Play`,
+                        url: embedUrl // استخدام url يجعله يفتح داخل المشغل المباشر
                     }
                 ]
             };
