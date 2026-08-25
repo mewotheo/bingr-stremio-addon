@@ -1,6 +1,7 @@
 const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
 const axios = require("axios");
 
+// 1. إعداد بيانات الإضافة (مع إضافة catalogs كـ array فارغة لتفادي الخطأ)
 const builder = new addonBuilder({
     id: "one.bingr.addon",
     version: "1.0.0",
@@ -8,7 +9,8 @@ const builder = new addonBuilder({
     description: "Stream movies and series directly from Bingr.one",
     resources: ["stream"],
     types: ["movie", "series"],
-    idPrefixes: ["tt"]
+    idPrefixes: ["tt"],
+    catalogs: [] // هذا السطر يحل مشكلة الـ Build
 });
 
 builder.defineStreamHandler(async (args) => {
