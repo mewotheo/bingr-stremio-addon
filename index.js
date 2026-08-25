@@ -5,7 +5,7 @@ const manifest = {
     id: "one.bingr.stremio.addon",
     version: "1.0.0",
     name: "Bingr Stream",
-    description: "Stream movies and series directly from Bingr.one",
+    description: "Watch movies and series directly on Bingr.one",
     resources: ["stream"],
     types: ["movie", "series"],
     idPrefixes: ["tt"],
@@ -14,29 +14,57 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
+// مفتاح مجاني لتحويل IMDb ID إلى TMDB ID
+const TMDB_API_KEY = "15d2ea6d0dc1d476efbca3eba2b9bbfb";
+
 builder.defineStreamHandler(async (args) => {
     const { type, id } = args;
-    console.log(`[Request] Fetching streams for ID: ${id}, Type: ${type}`);
 
     try {
-        const response = await axios.get("https://bingr.one/api/get-stream", {
-            params: { type, imdb: id },
-            timeout: 7000
+        let imdbId = id;
+        let season = 1;
+        let episode = 1;
+
+        if (type === "series" && id.includes(":")) {
+            const parts = id.split(":");
+            imdbId = parts[0];
+            season = parts[1];
+            episode = parts[2];
+        }
+
+        // تحويل IMDb ID إلى TMDB ID
+        const tmdbRes = await axios.get(`https://api.themoviedb.org/3/find/${imdbId}`, {
+            params: {
+                api_key: TMDB_API_KEY,
+                external_source: "imdb_id"
+            },
+            timeout: 5000
         });
 
-        console.log("[API Response]:", JSON.stringify(response.data));
+        let tmdbId = null;
+        if (type === "movie" && tmdbRes.data.movie_results?.length > 0) {
+            tmdbId = tmdbRes.data.movie_results[0].id;
+        } else if (type === "series" && tmdbRes.data.tv_results?.length > 0) {
+            tmdbId = tmdbRes.data.tv_results[0].id;
+        }
 
-        if (response.data && Array.isArray(response.data.servers)) {
-            const streams = response.data.servers.map(server => ({
-                name: `Bingr | ${server.name || "Server"}`,
-                title: `${server.resolution || "1080p"} - ${server.quality || "HD"}`,
-                url: server.directUrl
-            }));
+        if (tmdbId) {
+            const bingrUrl = type === "movie" 
+                ? `https://bingr.one/watch/movie/${tmdbId}`
+                : `https://bingr.one/watch/tv/${tmdbId}/${season}/${episode}`;
 
-            return { streams };
+            return {
+                streams: [
+                    {
+                        name: "Bingr",
+                        title: `▶ Watch on Bingr.one (${type === 'series' ? `S${season}E${episode}` : 'Movie'})`,
+                        externalUrl: bingrUrl
+                    }
+                ]
+            };
         }
     } catch (error) {
-        console.error("[API Error]:", error.message);
+        console.error("Error generating Bingr link:", error.message);
     }
 
     return { streams: [] };
